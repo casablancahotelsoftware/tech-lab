@@ -1,0 +1,5 @@
+# Document Loading and Processing Requirements
+langchain
+tqdm
+tiktoken
+

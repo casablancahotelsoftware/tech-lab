@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RAGWorkshop": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
