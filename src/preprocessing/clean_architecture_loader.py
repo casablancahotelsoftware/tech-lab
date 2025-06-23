@@ -301,16 +301,30 @@ class CleanArchitectureDocumentLoader:
         logger.info(f"Exported {len(documents)} documents to {output_path}")
 
 
+import argparse
+
 def main():
-    """Example usage of the CleanArchitecture document loader."""
-    
-    # Initialize loader
+    """CLI for CleanArchitecture document loader."""
+    parser = argparse.ArgumentParser(
+        description="Load and export documents from a CleanArchitecture repository."
+    )
+    parser.add_argument(
+        "--input-path", "-i", required=True, type=str,
+        help="Path to the CleanArchitecture repository root."
+    )
+    parser.add_argument(
+        "--output-path", "-o", required=True, type=str,
+        help="Path to export the processed documents (json or jsonl)."
+    )
+    parser.add_argument(
+        "--format", "-f", choices=["json", "jsonl"], default="json",
+        help="Export format: json (default) or jsonl."
+    )
+    args = parser.parse_args()
 
-    # Load from local repository
-    loader = CleanArchitectureDocumentLoader("./../../../CleanArchitecture-main")
+    loader = CleanArchitectureDocumentLoader(args.input_path)
     documents = loader.load()
+    loader.export_documents(documents, args.output_path, format=args.format)
 
-    # Export for C# processing
-    loader.export_documents(documents, "clean_architecture_documents.json")
 if __name__ == "__main__":
     main()

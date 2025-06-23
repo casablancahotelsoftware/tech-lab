@@ -1,13 +1,13 @@
 # CleanArchitecture Document Loader for RAG Workshop
 
-This directory contains a comprehensive document loading and processing system specifically designed for the [ardalis/CleanArchitecture](https://github.com/ardalis/CleanArchitecture) repository. It implements best practices from the RAG improvement guidelines and integrates with Semantic Kernel's vector store connectors.
+This directory contains a comprehensive document loading and processing system specifically designed for the [ardalis/CleanArchitecture](https://github.com/ardalis/CleanArchitecture) repository. 
 
 ## Overview
 
 The system consists of two main components:
 
 1. **Python Document Loader** (`clean_architecture_loader.py`) - Uses LangChain patterns to extract and process documents
-2. **C# Vector Store Integration** (`CleanArchitectureDocumentService.cs`) - Integrates with Semantic Kernel for vector storage and retrieval
+2. **Vector DB Initializer** (`initialize_vector_db.py`) - Loads processed documents into a Qdrant vector database
 
 ## Features
 
@@ -18,58 +18,30 @@ The system consists of two main components:
 - **Metadata Extraction**: Extracts namespaces, classes, methods, dependencies, and architecture patterns
 - **Clean Architecture Aware**: Understands project layers (Core, Infrastructure, Web, UseCases, Tests)
 
-### C# Integration
-- **Semantic Kernel Compatible**: Works with all Semantic Kernel vector store connectors
-- **Type-safe Models**: Strongly-typed document models with proper vector store annotations
-- **Batch Processing**: Efficient embedding generation and storage
-- **Search Capabilities**: Built-in vector search with metadata filtering
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- .NET 8.0 or 9.0
-- OpenAI API key (for embeddings)
-- Qdrant (optional, for vector storage)
+- Docker (for Qdrant vector storage)
+- Python 3.11
+- Azure API key (for embeddings)
+- Qdrant 
 
 ### Setup
+python -m venv .venv
+source .venv/bin/activate  # On Windows use .venv\Scripts\activate
+pip install -r requirements.txt
 
-1. **Automated Setup**:
-   ```bash
-   python setup.py
-   ```
-
-2. **Manual Setup**:
-   ```bash
-   # Install Python dependencies
-   pip install -r requirements.txt
-   
-   # Process the CleanArchitecture repository
-   python clean_architecture_loader.py
-   
-   # Build the C# project
-   dotnet build RAGWorkshop.DocumentProcessing.csproj
-   ```
 
 ### Configuration
 
-1. **Update `.env` file** with your OpenAI API key:
+1. **Update `.env` file** with your Azure API key and endpoint:
    ```
-   OPENAI_API_KEY=your-api-key-here
-   ```
-
-2. **Update `appsettings.json`** for C# configuration:
-   ```json
-   {
-      "AzureOpenAIEmbedding": {
-         "ApiKey": "Apikey",
-         "Endpoint": "Endpoint",
-         "EmbeddingModel": "text-embedding-3-large"
-      },
-   }
+   AZURE_EMBEDDINGS_API_KEY=your-api-key-here
+   AZURE_EMBEDDINGS_BASE_URL=https://your-azure-endpoint.openai.azure.com/
    ```
 
-3. **Start Qdrant** (if using vector storage):
+3. **Start Qdrant** :
    ```bash
    docker pull qdrant/qdrant
    docker run -p 6333:6333 -p 6334:6334 -v "$(pwd)/data:/qdrant/storage" qdrant/qdrant
@@ -79,39 +51,15 @@ The system consists of two main components:
 
 ### Python Document Loading
 
-```python
-from clean_architecture_loader import CleanArchitectureDocumentLoader
+```bash
+python ./src/preprocessing/clean_architecture_loader.py --input-path './path/to/clean_architecture_repo' --output-path ./path/to/clean_architecture_documents.json
 
-# Load from remote repository
-loader = CleanArchitectureDocumentLoader()
-documents = loader.load()
-
-# Load from local repository
-loader = CleanArchitectureDocumentLoader("/path/to/local/repo")
-documents = loader.load()
-
-# Export for C# processing
-loader.export_documents(documents, "clean_architecture_documents.json")
 ```
+### Initialize Vector Database
 
-### C# Vector Storage and Search
+```bash
+python ./src/preprocessing/initialize_vector_db.py --json "path/to/clean_architecture_documents.json" --collection cleanarchitecture --recreate
 
-```csharp
-
-// Load documents processed by Python
-var documentService = new CleanArchitectureDocumentService(embeddingService, logger);
-var documents = await documentService.LoadDocumentsFromJsonAsync("clean_architecture_documents.json");
-
-// Generate embeddings
-await documentService.GenerateEmbeddingsAsync(documents);
-
-// Store in vector database
-var collection = vectorStore.GetCollection<string, CleanArchitectureDocument>("cleanarchitecture");
-await documentService.StoreDocumentsAsync(collection, documents);
-
-// Search for relevant documents
-var results = await documentService.SearchDocumentsAsync(collection, 
-    "How to implement repository pattern?");
 ```
 
 ## Document Structure
@@ -130,27 +78,6 @@ Each processed document includes rich metadata:
   }
 }
 ```
-
-## Architecture Patterns Detected
-
-The system automatically identifies common Clean Architecture patterns:
-
-- **Controllers**: Web API controllers and endpoints
-- **Repositories**: Data access repositories
-- **Services**: Application and domain services
-- **Entities**: Domain entities and aggregates
-- **Use Cases**: Application use cases and handlers
-- **Configurations**: Dependency injection and service configurations
-
-## Project Layer Classification
-
-Documents are automatically classified into Clean Architecture layers:
-
-- **Core**: Domain models, entities, interfaces
-- **Infrastructure**: Data access, external services
-- **Web**: Controllers, endpoints, UI
-- **UseCases**: Application services, handlers
-- **Tests**: Unit tests, integration tests
 
 ## Advanced Features
 
